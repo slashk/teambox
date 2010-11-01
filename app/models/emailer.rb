@@ -45,6 +45,20 @@ class Emailer < ActionMailer::Base
     subject       I18n.t("emailer.invitation.subject", :user => invitation.user.name, :project => invitation.project.name)
     body          :referral => invitation.user, :project => invitation.project, :invitation => invitation
   end
+  
+  def notify_export(data)
+    defaults
+    recipients    data.user.email
+    subject       I18n.t('emailer.teamboxdata.exported')
+    body          :data => data, :user => data.user
+  end
+  
+  def notify_import(data)
+    defaults
+    recipients    data.user.email
+    subject       I18n.t('emailer.teamboxdata.imported')
+    body          :data => data, :user => data.user
+  end
 
   def notify_conversation(user, project, conversation)
     title = conversation.name.blank? ? 

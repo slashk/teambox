@@ -1,0 +1,11 @@
+<%= dont_answer %>
+
+<%= t('emailer.teamboxdata.import_hey', :user_name => h(@user.name)) %>
+
+
+<%= t('emailer.teamboxdata.data_exported') %>
+
+<%= teambox_data_path(data) %>
+
+<%= t('emailer.reset_password.report_abuse', :email => @user.email) %>
+<%= t('emailer.reset_password.problems', :support => APP_CONFIG['support']) %>

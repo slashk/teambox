@@ -1284,6 +1284,12 @@ en:
       plan_share_and_collaborate: "Plan, share and keep track of what's been done. Simple as it should be."
       report_abuse: "This email was sent to you at your contact's request. Please report any abuse."
       subject_without_project: "%{name} invited you to Teambox"
+    teamboxdata:
+        hey: "Hey, %{user_name}!"
+        data_imported: "Your data has been imported into teambox. To view details, please visit the following link."
+        data_exported: "Your data has been exported from teambox, and is available as a download from the following link."
+        exported: "Your data is ready for download"
+        imported: "Your data has been imported"
     confirm:
       subject: "Get started with Teambox"
       hey: "Hey, %{user_name}!"
