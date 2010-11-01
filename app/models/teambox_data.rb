@@ -1,6 +1,6 @@
 class TeamboxData < ActiveRecord::Base
   belongs_to :user
-  concerned_with :serialization, :attributes
+  concerned_with :serialization, :attributes, :teambox, :basecamp
   
   attr_accessible :projects_to_export, :type_name, :import_data, :user_map, :target_organization
   
@@ -76,9 +76,12 @@ class TeamboxData < ActiveRecord::Base
       end
       
       ActionMailer::Base.perform_deliveries = false
-      unserialize({'User' => user_map, 'Organization' => org_map})
+      if service == 'basecamp'
+        unserialize_basecamp({'User' => user_map, 'Organization' => org_map})
+      else
+        unserialize({'User' => user_map, 'Organization' => org_map})
+      end
       is_processing = false
-      save!
     rescue Exception => e
       # Something went wrong?!
     end
@@ -86,7 +89,8 @@ class TeamboxData < ActiveRecord::Base
     ActionMailer::Base.perform_deliveries = do_deliver
     FileUtils.rm("/tmp/#{processed_data_file_name}")
     self.processed_data_file_name = nil
-    destroy # we don't need this anymore!
+    save
+    #destroy # we don't need this anymore!
   end
   
   def do_export

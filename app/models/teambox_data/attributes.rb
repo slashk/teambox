@@ -5,6 +5,7 @@ class TeamboxData
   attr_writer :map_data
   
   serialize :project_ids
+  serialize :processed_objects
   serialize :map_data
   
   TYPE_LOOKUP = {:import => 0, :export => 1}
@@ -71,7 +72,11 @@ class TeamboxData
     if @data.nil? and type_name == :import
       begin
         File.open("/tmp/#{processed_data_file_name}") do |f|
-          @data = ActiveSupport::JSON.decode f.read
+          @data = if service == 'basecamp'
+            ActiveSupport::XmlMini.decode f.read
+          else
+            ActiveSupport::JSON.decode f.read
+          end
         end
       rescue
         nil
