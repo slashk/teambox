@@ -26,7 +26,7 @@ class TeamboxDatasController < ApplicationController
   
   def new
     # create import/export
-    @data = current_user.teambox_datas.build()
+    @data = current_user.teambox_datas.build(:service => 'teambox')
     @data.type_name = params[:type]
     
     respond_to do |f|

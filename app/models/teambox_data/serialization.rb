@@ -25,22 +25,22 @@ class TeamboxData
     if service == 'basecamp'
       unserialize_basecamp(object_maps, opts)
     else
-      unserialize_teambox(object_maps, opts)
+      unserialize_teambox({'users' => data['account']['users'],
+                           'projects' => data['account']['projects'],
+                           'organizations' => data['account']['organizations']}, 
+                           object_maps, opts)
     end
   end
   
   # Generate metadata used for the frontend for mapping
   def metadata
-    puts "METADATA SERVICE == #{service}"
     @metadata ||= if service == 'basecamp'
       # Calculate basic metadata from basecamp
-      metadata_basecamp
+      metadata_basecamp(false)
     else
-      {
-        'users' => data['account']['users'],
+      {'users' => data['account']['users'],
         'projects' => data['account']['projects'],
-        'organizations' => data['account']['organizations']
-      }
+        'organizations' => data['account']['organizations']}
     end
   end
   

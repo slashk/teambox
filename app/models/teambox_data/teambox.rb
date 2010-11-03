@@ -1,8 +1,6 @@
 class TeamboxData
-  def unserialize_teambox(object_maps, opts={})
+  def unserialize_teambox(dump, object_maps, opts={})
     ActiveRecord::Base.transaction do
-      dump = data['account']
-      
       @object_map = {
         'User' => {},
         'Organization' => {}
@@ -13,7 +11,8 @@ class TeamboxData
       @organization_map = @object_map['Organization']
       
       @processed_objects[:user] = []
-      @users = users.map do |udata|
+      
+      @users = dump['users'].map do |udata|
         user_name = @imported_users[udata['username']] || udata['username']
         user = User.find_by_login(user_name)
         if user.nil? and opts[:create_users]
@@ -31,7 +30,7 @@ class TeamboxData
       end.compact
       
       @processed_objects[:organization] = []
-      @organizations = organizations.map do |organization_data|
+      @organizations = dump['organizations'].map do |organization_data|
         organization_name = @organization_map[organization_data['permalink']] || organization_data['permalink']
         organization = Organization.find_by_permalink(organization_name)
         
@@ -52,7 +51,7 @@ class TeamboxData
       end
       
       @processed_objects[:project] = []
-      @projects = data['account']['projects'].map do |project_data|
+      @projects = dump['projects'].map do |project_data|
         @project = Project.find_by_permalink(project_data['permalink'])
         if @project
           project_data['permalink'] += "-#{rand}"

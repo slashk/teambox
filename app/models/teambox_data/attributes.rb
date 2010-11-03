@@ -73,7 +73,7 @@ class TeamboxData
       begin
         File.open("/tmp/#{processed_data_file_name}") do |f|
           @data = if service == 'basecamp'
-            ActiveSupport::XmlMini.decode f.read
+            Hash.from_xml f.read
           else
             ActiveSupport::JSON.decode f.read
           end

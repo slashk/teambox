@@ -2,7 +2,7 @@ class TeamboxData < ActiveRecord::Base
   belongs_to :user
   concerned_with :serialization, :attributes, :teambox, :basecamp
   
-  attr_accessible :projects_to_export, :type_name, :import_data, :user_map, :target_organization
+  attr_accessible :projects_to_export, :type_name, :import_data, :user_map, :target_organization, :service
   
   before_validation_on_create :process_data
   after_create :check_ready
@@ -17,6 +17,7 @@ class TeamboxData < ActiveRecord::Base
   validate :check_map
   
   def check_map
+    @errors.add "service", "Unknown service #{service}" if !['teambox', 'basecamp'].include?(service)
     if type_name == :import and !new_record?
       # user needs to be an admin of the target organization
       if !user.admin_organizations.map(&:permalink).include?(target_organization)
@@ -48,6 +49,8 @@ class TeamboxData < ActiveRecord::Base
         puts @process_error
         self.processed_data_file_name = nil
       end
+    elsif type_name == :export
+      self.service = 'teambox'
     end
   end
   
