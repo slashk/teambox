@@ -84,11 +84,11 @@ class TeamboxData < ActiveRecord::Base
       else
         unserialize({'User' => user_map, 'Organization' => org_map})
       end
-      is_processing = false
     rescue Exception => e
       # Something went wrong?!
     end
     
+    self.is_processing = false
     ActionMailer::Base.perform_deliveries = do_deliver
     FileUtils.rm("/tmp/#{processed_data_file_name}")
     self.processed_data_file_name = nil
@@ -104,7 +104,7 @@ class TeamboxData < ActiveRecord::Base
     upload.seek(0)
     upload.original_path = "#{user.login}-export.json"
     self.processed_data = upload
-    is_processing = false
+    self.is_processing = false
     save!
   end
   

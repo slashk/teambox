@@ -14,7 +14,7 @@
       = render :partial => 'user_map', 
                :collection => @data.user_map.map{|key,value|[key,value]}, 
                :locals => {:users => @data.users_lookup}
-    .target_project
+    .target_project.many_fields
       %label= "Put all projects in this organization"
       = select_tag "teambox_data[target_organization]", options_for_select(options_for_target_organization, @data.target_organization)
       = errors_for @data, "target_organization"
