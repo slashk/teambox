@@ -1007,8 +1007,9 @@ en:
   teambox_datas:
     new_import:
       title: "Import data"
-      select_file: Please choose a file containing your teambox data.
+      select_file: Please choose a file containing your data.
       submit: Import data
+      service: "Which service did you export your data from?"
     new_export:
       title: "Export data"
       description: "Please select which projects you wish to export"
@@ -1174,6 +1175,7 @@ en:
       notifications: Notifications
       plans_and_billing: Plans and Billing
       delete_account: Delete Account...
+      your_data: Your data
     task_navigation:
       all_tasks: "All Tasks"
       unarchived_tasks: "Unarchived Tasks"

@@ -1,3 +1,6 @@
+- content_for :column do
+  = render 'shared/user_navigation'
+
 %h2= t('.title')
 
 - if @data.need_data? and @data.data

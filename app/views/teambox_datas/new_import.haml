@@ -1,11 +1,23 @@
+- content_for :column do
+  = render 'shared/user_navigation'
+
 %h2= t('.title')
 
 - form_for @data, :html => {:multipart => true} do |f|
   = hidden_field_tag 'teambox_data[type_name]', 'import'
   
-  .file
+  %h3= t('.service')
+  %div{:style => 'float:left'}
+    = f.label :service_teambox, 'Teambox'
+    = f.radio_button :service, 'teambox'
+  %div{:style => 'float:left'}
+    = f.label :service_basecamp, 'Basecamp'
+    = f.radio_button :service, 'basecamp'
+  
+  .many_fields
     = f.label :asset, t('.select_file')
     = f.file_field :import_data, :size => 20
+    .clear
   .submit
     = f.submit t('.submit')
     = t('common.or')

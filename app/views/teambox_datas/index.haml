@@ -1,3 +1,6 @@
+- content_for :column do
+  = render 'shared/user_navigation'
+
 %h2= t('.title')
 
 %h3= t('.imports')
@@ -7,6 +10,8 @@
   - else
     %p= t('.no_imports')
 
+  = new_teambox_import_link
+
 %h3= t('.exports')
 
 #data_exports
@@ -14,5 +19,5 @@
     = render :partial => 'data', :collection => @data_exports
   - else
     %p= t('.no_exports')
-  
-= render :partial => 'column'
+
+  = new_teambox_export_link
