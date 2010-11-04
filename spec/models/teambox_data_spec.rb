@@ -53,13 +53,19 @@ describe TeamboxData do
       User.count.should == 0
       Project.count.should == 0
       Organization.count.should == 0
+      Conversation.count.should == 0
+      TaskList.count.should == 0
+      Task.count.should == 0
       
       data = File.open("#{RAILS_ROOT}/spec/fixtures/campdump.xml") { |f| Hash.from_xml f.read }
       TeamboxData.new.tap{|d| d.service = 'basecamp'; d.data = data }.unserialize({}, {:create_users => true, :create_organizations => true})
       
       User.count.should == 1
       Project.count.should == 1
-      Organization.count.should == 1 
+      Organization.count.should == 1
+      Conversation.count.should == 1
+      TaskList.count.should == 2
+      Task.count.should == 4
     end
   end
   

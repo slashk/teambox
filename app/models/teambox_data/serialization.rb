@@ -83,14 +83,21 @@ class TeamboxData
     user
   end
   
+  def resolve_person(id)
+    return nil if id.nil?
+    @imported_people[id]
+  end
+  
   def import_log(object, remark="")
     Rails.logger.warn "Imported #{object} (#{remark})"
   end
   
   def self.import_from_file(name, user_map, opts={})
     ActionMailer::Base.perform_deliveries = false
-    data = File.open(name, 'r') { |file| ActiveSupport::JSON.decode file.read }
-    TeamboxData.new.tap{|d| d.data = data}.unserialize(user_map, opts)
+    data = File.open(name, 'r') do |file|
+      opts[:format] == 'basecamp' ? Hash.from_xml(file.read) : ActiveSupport::JSON.decode(file.read)
+    end
+    TeamboxData.new.tap{|d| d.service = opts[:format]||'teambox'; d.data = data}.unserialize(user_map, opts)
   end
   
   def self.export_to_file(projects, users, organizations, name)

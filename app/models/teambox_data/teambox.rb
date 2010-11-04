@@ -7,8 +7,8 @@ class TeamboxData
       }.merge(object_maps)
       
       @processed_objects = {}
-      @imported_users = @object_map['User']
-      @organization_map = @object_map['Organization']
+      @imported_users = @object_map['User'].clone
+      @organization_map = @object_map['Organization'].clone
       
       @processed_objects[:user] = []
       
@@ -51,12 +51,13 @@ class TeamboxData
       end
       
       @processed_objects[:project] = []
+      @imported_people = {}
       @projects = dump['projects'].map do |project_data|
         @project = Project.find_by_permalink(project_data['permalink'])
         if @project
           project_data['permalink'] += "-#{rand}"
         end
-        @project = unpack_object(Project.new, project_data, ['user_id'])
+        @project = unpack_object(Project.new, project_data, [])
         @project.user = resolve_user(project_data['owner_user_id'])
         @project.organization = @organization_map[project_data['organization_id']] || @project.user.organizations.first
         @project.save!
@@ -67,6 +68,7 @@ class TeamboxData
           @project.add_user(resolve_user(person_data['user_id']), 
                             :role => person_data['role'],
                             :source_user => resolve_user(person_data['source_user_id']))
+          @imported_people[person_data['id']] = @project.people.last
         end
         
         # Note on commentable objects: callbacks may be invoked which may change their state. 
@@ -89,7 +91,7 @@ class TeamboxData
         
           unpack_comments(task_list, task_list_data['comments'])
         
-          Array(project_data['tasks']).each do |task_data|
+          Array(task_list_data['tasks']).each do |task_data|
             task = unpack_object(task_list.tasks.build, task_data)
             task.save!
             import_log(task)
@@ -120,6 +122,8 @@ class TeamboxData
         
         @processed_objects[:project] << @project.id
       end
+      
+      self.projects = @processed_objects[:project]
     end
   end
   
@@ -132,7 +136,13 @@ class TeamboxData
       end
       
       obj.project = @project if obj.respond_to? :project
-      obj.user_id = resolve_user(data['user_id']).id if data['user_id']
+      if obj.class != Project and obj.respond_to? :user_id
+        throw Exception.new("#{object.class.to_s} '#{object.to_s}' does not have a valid user") if data['user_id'].nil?
+        obj.user_id = resolve_user(data['user_id']).id if data['user_id']
+      end
+      if obj.respond_to? :assigned_id
+        obj.assigned_id = resolve_person(data['assigned_id']).id if data['assigned_id']
+      end
       obj.watchers_ids = data['watchers'].map{|u| @imported_users[u].try(:id)}.compact if data['watchers']
       obj.created_at = data['created_at'] if data['created_at']
       obj.updated_at = data['updated_at'] if data['updated_at']
@@ -143,6 +153,7 @@ class TeamboxData
     return if comments.nil?
     comments.each do |comment_data|
       comment = unpack_object(@project.comments.build, comment_data)
+      comment.assigned_id = resolve_person(comment_data['assigned_id']).id if data['assigned_id']
       comment.target = obj
       comment.save!
       import_log(comment)

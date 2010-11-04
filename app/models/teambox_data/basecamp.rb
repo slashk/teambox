@@ -17,7 +17,6 @@ class TeamboxData
     #   ../comments/comment [comments]
     # participants/person [people]
     
-    account = {}
     import_data = metadata_basecamp(true)
     unserialize_teambox(import_data, object_maps, opts)
   end
@@ -33,27 +32,97 @@ class TeamboxData
        'created_at' => person['created_at']}
     end
     
+    firm_user_ids = user_list.map{|u|u['id']}
+    
     project_list = data['account']['projects'].map do |project|
       base = {'id' => id,
        'organization_id' => data['account']['firm']['id'],
        'name' => project['name'].first,
        'archived' => project['status'] == 'active' ? false : true,
-       'created_at' => project['created-on'],
+       'created_at' => project['created_on'],
        'owner_user_id' => user_list.first['id']}
+       
+      base['people'] = project['participants'].map do |participant|
+        {'id' => participant[1],
+          'user_id' => participant[1],
+          'role' => firm_user_ids.include?(participant) ? Person::ROLES[:admin] : Person::ROLES[:participant]}
+      end
       
       if with_project_data
         base['conversations'] = project['posts'].map do |post|
           {}.tap do |conversation|
             conversation.merge!({
-              'title' => post['title'],
-              'user_id' => post['author-id'],
-              'created_at' => post['created-on'],
-              'simple' => true
-            }) 
+              'name' => post['title'],
+              'user_id' => post['author_id'],
+              'created_at' => post['created_on'],
+              'simple' => false
+            })
             conversation['comments'] = post['comments'].map do |comment|
               {'body' => comment['body'],
-               'created-at' => post['created-on'],
-               'user_id' => post['author-id']}
+               'created_at' => comment['created_on'],
+               'user_id' => comment['author_id']}
+            end
+          end
+        end
+        
+        base['task_lists'] = project['todo_lists'].map do |list|
+          {}.tap do |task_list|
+            task_list.merge!({
+              'name' => list['name'].first,
+              'user_id' => user_list.first['id']
+            })
+            task_list['tasks'] = list['todo_items'].map do |list_item|
+              task_status = if list_item['completed']
+                :resolved
+              else
+                :open
+              end
+              
+              {}.tap do |task|
+                task.merge!({
+                  'name' => list_item['content'],
+                  'position' => list_item['position'],
+                  'created_at' => list_item['created_at'],
+                  'user_id' => list_item['creator_id'],
+                  'status' => Task::STATUSES[task_status],
+                  'due_on' => list_item['due_at']})
+                task['assigned_id'] = list_item['responsible_party_id'] if list_item['responsible_party_type'] == 'Person'
+                task['completed_at'] = (list_item['completed_at']||Time.now) if list_item['completed']
+                task['comments'] = list_item['comments'].map do |comment|
+                  {'body' => comment['body'],
+                   'created_at' => comment['created_on'],
+                   'user_id' => comment['author_id']}
+                end
+              end
+            end
+          end
+        end
+        
+        base['task_lists'] << {}.tap do |task_list|
+          task_list.merge!({
+            'name' => 'Milestones',
+            'user_id' => user_list.first['id']
+          })
+          task_list['tasks'] = project['milestones'].map do |milestone|
+            {}.tap do |task|
+              task_status = if milestone['completed']
+                :resolved
+              else
+                :open
+              end           
+              task.merge!({
+                'name' => milestone['title'],
+                'created_at' => milestone['created_on'],
+                'user_id' => milestone['creator_id'],
+                'status' => Task::STATUSES[task_status],
+                'due_on' => milestone['deadline']})
+              task['assigned_id'] = milestone['responsible_party_id'] if milestone['responsible_party_type'] == 'Person'
+              task['completed_at'] = (milestone['completed_at']||Time.now) if milestone['completed']
+              task['comments'] = milestone['comments'].map do |comment|
+                {'body' => comment['body'],
+                 'created_at' => comment['created_on'],
+                 'user_id' => comment['author_id']}
+              end
             end
           end
         end
@@ -72,6 +141,7 @@ class TeamboxData
       
       {'id' => firm['id'],
        'name' => compat_name,
+       'permalink' => compat_name.downcase,
        'time_zone' => firm['time_zone_id'],
        'members' => people}
     end
