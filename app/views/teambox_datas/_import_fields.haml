@@ -1,0 +1,27 @@
+- if @data.status_name == :uploading
+  %h3= t('.service')
+  %div{:style => 'float:left'}
+    = f.label :service_teambox, 'Teambox'
+    = f.radio_button :service, 'teambox'
+  %div{:style => 'float:left'}
+    = f.label :service_basecamp, 'Basecamp'
+    = f.radio_button :service, 'basecamp'
+  
+  .many_fields
+    = f.label :asset, t('.select_file')
+    = f.file_field :import_data, :size => 20
+    .clear
+- elsif @data.status_name == :mapping
+  %p= t('.please_supply_user_map')
+  %table#map_users
+    %tr
+      %th= t('.user')
+      %th= t('.teambox_user')
+      %th
+    = render :partial => 'user_map', 
+             :collection => @data.user_map.map{|key,value|[key,value]}, 
+             :locals => {:users => @data.users_lookup}
+  .target_project.many_fields
+    %label= t('.in_organization')
+    = select_tag "teambox_data[target_organization]", options_for_select(options_for_target_organization, @data.target_organization)
+    = errors_for @data, "target_organization"

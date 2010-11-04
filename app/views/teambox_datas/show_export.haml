@@ -5,7 +5,7 @@
   = t('.title')
 
 .teambox_data
-  - if @data.is_processing
+  - if @data.processing?
     %p= t('teambox_datas.data.processing')
     .actions
       %a{:href => teambox_data_path(@data), :class => 'cancel', 'data-method' => 'delete'}= t('common.cancel')
@@ -14,8 +14,8 @@
 
   %p= t('.projects')
   %ul
-    - @data.projects_to_export.each do |project|
+    - @data.projects.each do |project|
       %li= link_to h(project.name), project_path(project)
 
-  - unless @data.is_processing
+  - unless @data.processing?
     = link_to t('.download'), @data.processed_data.url
