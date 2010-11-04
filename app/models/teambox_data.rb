@@ -13,7 +13,7 @@ class TeamboxData < ActiveRecord::Base
     :path => Teambox.config.amazon_s3 ?
       "exports/:id/:filename" :
       ":rails_root/exports/:id/:filename"
-      
+  
   validate :check_map
   
   def check_map
@@ -102,6 +102,7 @@ class TeamboxData < ActiveRecord::Base
   def do_import
     self.processed_at = Time.now
     do_deliver = ActionMailer::Base.perform_deliveries
+    next_status = :imported
     
     begin
       org_map = {}
@@ -117,11 +118,15 @@ class TeamboxData < ActiveRecord::Base
       end
     rescue Exception => e
       # Something went wrong?!
-      destroy
-      return
+      self.processed_at = nil
+      next_status = :processing
+      if new_record? or @check_state
+        destroy
+        return
+      end
     end
     
-    self.status_name = :imported
+    self.status_name = next_status
     ActionMailer::Base.perform_deliveries = do_deliver
     FileUtils.rm("/tmp/#{processed_data_file_name}")
     self.processed_data_file_name = nil

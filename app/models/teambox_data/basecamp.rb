@@ -41,10 +41,9 @@ class TeamboxData
        'archived' => project['status'] == 'active' ? false : true,
        'created_at' => project['created_on'],
        'owner_user_id' => user_list.first['id']}
-       
-      base['people'] = project['participants'].map do |participant|
-        {'id' => participant[1],
-          'user_id' => participant[1],
+      base['people'] = Array(project['participants']['person']).map do |participant|
+        {'id' => participant,
+          'user_id' => participant,
           'role' => firm_user_ids.include?(participant) ? Person::ROLES[:admin] : Person::ROLES[:participant]}
       end
       

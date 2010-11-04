@@ -145,7 +145,6 @@ class TeamboxData
       end
       obj.watchers_ids = data['watchers'].map{|u| @imported_users[u].try(:id)}.compact if data['watchers']
       obj.created_at = data['created_at'] if data['created_at']
-      obj.updated_at = data['updated_at'] if data['updated_at']
     end
   end
   
@@ -154,6 +153,7 @@ class TeamboxData
     comments.each do |comment_data|
       comment = unpack_object(@project.comments.build, comment_data)
       comment.assigned_id = resolve_person(comment_data['assigned_id']).id if data['assigned_id']
+      comment.created_at = data['created_at'] if data['created_at']
       comment.target = obj
       comment.save!
       import_log(comment)
