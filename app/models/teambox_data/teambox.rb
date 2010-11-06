@@ -34,6 +34,10 @@ class TeamboxData
         organization_name = @organization_map[organization_data['permalink']] || organization_data['permalink']
         organization = Organization.find_by_permalink(organization_name)
         
+        if user and organization and !organization.is_admin?(user)
+          raise(Exception, "#{user} needs to be an admin of #{organization}")
+        end
+        
         if organization.nil? and opts[:create_organizations]
           organization = unpack_object(Organization.new, organization_data, []) if organization.nil?
           organization.permalink = organization_name if organization.nil?
@@ -67,7 +71,7 @@ class TeamboxData
         Array(project_data['people']).each do |person_data|
           @project.add_user(resolve_user(person_data['user_id']), 
                             :role => person_data['role'],
-                            :source_user => resolve_user(person_data['source_user_id']))
+                            :source_user => user ? user : resolve_user(person_data['source_user_id']))
           @imported_people[person_data['id']] = @project.people.last
         end
         

@@ -47,11 +47,15 @@ class TeamboxDatasController < ApplicationController
   
   def update
     respond_to do |f|
-      if @data.update_attributes(params[:teambox_data])
+      if !@data.processing? and @data.update_attributes(params[:teambox_data])
         f.html { redirect_to teambox_datas_path }
       else
-        flash.now[:error] = "There were errors with the information you supplied!"
-        f.html { render view_for_data(:show) }
+        if @data.processing?
+          f.html { redirect_to teambox_data_path(@data) }
+        else
+          flash.now[:error] = "There were errors with the information you supplied!"
+          f.html { render view_for_data(:show) }
+        end
       end
     end
   end

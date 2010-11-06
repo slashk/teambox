@@ -7,6 +7,7 @@ class TeamboxData < ActiveRecord::Base
   before_validation_on_create :set_service
   before_create :check_state
   before_update :check_state
+  before_destroy :clear_import_data
   
   has_attached_file :processed_data,
     :url  => "/exports/:id/:basename.:extension",
@@ -35,8 +36,20 @@ class TeamboxData < ActiveRecord::Base
     end
   end
   
+  def clear_import_data
+    if type_name == :import
+      fname = "#{temp_upload_path}#{processed_data_file_name}"
+      FileUtils.rm(fname) if processed_data_file_name and File.exists?(fname)
+      self.processed_data_file_name = nil
+    end
+  end
+  
   def set_service
     self.service ||= 'teambox'
+  end
+  
+  def temp_upload_path
+    "/tmp"
   end
   
   def store_import_data
@@ -44,7 +57,7 @@ class TeamboxData < ActiveRecord::Base
       # store the import in a temporary file, since we don't need it for long
       bytes = @import_data.read
       self.processed_data_file_name = "#{user.name}-import.json"
-      File.open("/tmp/#{processed_data_file_name}", 'w') do |f|
+      File.open("#{temp_upload_path}#{processed_data_file_name}", 'w') do |f|
         f.write bytes
       end
       self.status_name = :mapping
@@ -68,7 +81,7 @@ class TeamboxData < ActiveRecord::Base
     if type_name == :import
       case status_name
       when :uploading
-        if self.processed_data_file_name and File.exists?("/tmp/#{processed_data_file_name}")
+        if self.processed_data_file_name and File.exists?("#{temp_upload_path}#{processed_data_file_name}")
           self.status_name = :mapping
         elsif @import_data
           store_import_data
@@ -110,6 +123,8 @@ class TeamboxData < ActiveRecord::Base
         org_map[org['permalink']] = target_organization
       end
       
+      throw Exception.new("Import is invalid") if !valid?
+      
       ActionMailer::Base.perform_deliveries = false
       if service == 'basecamp'
         unserialize_basecamp({'User' => user_map, 'Organization' => org_map})
@@ -120,7 +135,7 @@ class TeamboxData < ActiveRecord::Base
       # Something went wrong?!
       self.processed_at = nil
       next_status = :processing
-      if new_record? or @check_state
+      unless new_record? or @check_state
         destroy
         return
       end
@@ -128,8 +143,7 @@ class TeamboxData < ActiveRecord::Base
     
     self.status_name = next_status
     ActionMailer::Base.perform_deliveries = do_deliver
-    FileUtils.rm("/tmp/#{processed_data_file_name}")
-    self.processed_data_file_name = nil
+    clear_import_data
     save unless new_record? or @check_state
   end
   
@@ -158,16 +172,28 @@ class TeamboxData < ActiveRecord::Base
                            [EXPORT_STATUSES[:pre_processing], EXPORT_STATUSES[:processing]].include?(status)
   end
   
+  def error?
+    (imported? or exported?) and processed_at.nil?
+  end
+  
   def project_ids=(value)
     write_attribute :project_ids, Array(value).map(&:to_i).compact
   end
   
   def projects
-    Project.find(:all, :conditions => {:id => project_ids})
+    if user
+      Project.find(:all, :conditions => {:id => project_ids, :organization_id => user.admin_organization_ids})
+    else
+      Project.find(:all, :conditions => {:id => project_ids})
+    end
   end
   
   def organizations_to_export
-    Organization.find(:all, :conditions => {:projects => {:id => project_ids}}, :joins => [:projects])
+    if user
+      Organization.find(:all, :conditions => {:projects => {:id => project_ids, :organization_id => user.admin_organization_ids}}, :joins => [:projects])
+    else
+      Organization.find(:all, :conditions => {:projects => {:id => project_ids}}, :joins => [:projects])
+    end
   end
   
   def users_to_export

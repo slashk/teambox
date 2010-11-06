@@ -84,7 +84,7 @@ class TeamboxData
   def data
     if @data.nil? and type_name == :import
       begin
-        File.open("/tmp/#{processed_data_file_name}") do |f|
+        File.open("#{temp_upload_path}#{processed_data_file_name}") do |f|
           @data = if service == 'basecamp'
             Hash.from_xml f.read
           else
