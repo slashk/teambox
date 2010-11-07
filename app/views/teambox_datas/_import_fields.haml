@@ -18,10 +18,8 @@
       %th= t('.user')
       %th= t('.teambox_user')
       %th
-    = render :partial => 'user_map', 
-             :collection => @data.user_map.map{|key,value|[key,value]}, 
-             :locals => {:users => @data.users_lookup}
+    = map_table_for_data(@data)
   .target_project.many_fields
-    %label= t('.in_organization')
+    %label{:for => 'teambox_data_target_organization'}= t('.in_organization')
     = select_tag "teambox_data[target_organization]", options_for_select(options_for_target_organization, @data.target_organization)
     = errors_for @data, "target_organization"

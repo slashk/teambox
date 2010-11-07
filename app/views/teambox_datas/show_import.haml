@@ -3,7 +3,7 @@
 
 %h2= t('.title')
 
-- if @data.status_name == :mapping
+- if @data.need_data?
   - form_for @data do |f|
     = fields_for_teambox_import(f, @data)
     .submit

@@ -38,7 +38,7 @@ class TeamboxData < ActiveRecord::Base
   
   def clear_import_data
     if type_name == :import
-      fname = "#{temp_upload_path}#{processed_data_file_name}"
+      fname = "#{temp_upload_path}/#{processed_data_file_name}"
       FileUtils.rm(fname) if processed_data_file_name and File.exists?(fname)
       self.processed_data_file_name = nil
     end
@@ -57,7 +57,7 @@ class TeamboxData < ActiveRecord::Base
       # store the import in a temporary file, since we don't need it for long
       bytes = @import_data.read
       self.processed_data_file_name = "#{user.name}-import.json"
-      File.open("#{temp_upload_path}#{processed_data_file_name}", 'w') do |f|
+      File.open("#{temp_upload_path}/#{processed_data_file_name}", 'w') do |f|
         f.write bytes
       end
       self.status_name = :mapping
@@ -81,7 +81,7 @@ class TeamboxData < ActiveRecord::Base
     if type_name == :import
       case status_name
       when :uploading
-        if self.processed_data_file_name and File.exists?("#{temp_upload_path}#{processed_data_file_name}")
+        if self.processed_data_file_name and File.exists?("#{temp_upload_path}/#{processed_data_file_name}")
           self.status_name = :mapping
         elsif @import_data
           store_import_data
