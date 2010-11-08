@@ -50,7 +50,8 @@ class TeamboxData
         @processed_objects[:user] << organization.id
         
         Array(organization_data['members']).each do |member_data|
-          organization.add_member(resolve_user(member_data['user_id']), member_data['role'])
+          org_user = resolve_user(member_data['user_id'])
+          organization.add_member(org_user, member_data['role']) unless organization.is_user?(org_user)
         end
       end
       

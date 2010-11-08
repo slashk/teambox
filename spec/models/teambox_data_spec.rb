@@ -91,7 +91,7 @@ describe TeamboxData do
       Conversation.count.should == 1
       TaskList.count.should == 2
       Task.count.should == 4
-      Comment.count.should == 3
+      Comment.count.should == 4
       
       org = Organization.last
       org.memberships.count.should == 1
@@ -177,6 +177,35 @@ describe TeamboxData do
       dump.status_name.should == :mapping
       dump.processed_at.should == nil
       organization.projects.length.should == 0
+    end
+    
+    it "should not alter existing memberships in the target organization" do
+      make_and_dump_the_teambox_dump
+      
+      organization = Factory(:organization)
+      user = Factory(:user)
+      user_map = @user_list.inject({}){|a,key| a[key] = user.login; a}
+      
+      organization.add_member(user, Membership::ROLES[:admin])
+      dump = TeamboxData.new.tap{|d|d.type_name='import';d.service='teambox';d.user=user; d.save}
+      dump.data = @teambox_dump
+      dump.target_organization = organization.permalink
+      dump.user_map = user_map
+      dump.status_name = :mapping
+      
+      @teambox_dump['account']['organizations'].each do |org|
+        org['members'].each { |member| member['role'] = 20 }
+      end
+      
+      roles = organization.memberships.map(&:role)
+      member_ids = organization.memberships.map(&:user_id)
+      
+      dump.save.should == true
+      dump.error?.should_not == true
+      dump.status_name.should == :imported
+      
+      organization.memberships(true).map(&:role).should == roles
+      organization.memberships(true).map(&:user_id).should == member_ids
     end
     
     it "should not import projects into an organization the user is not an admin of" do

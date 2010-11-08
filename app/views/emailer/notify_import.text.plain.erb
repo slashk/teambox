@@ -1,6 +1,6 @@
 <%= dont_answer %>
 
-<%= t('emailer.teamboxdata.import_hey', :user_name => h(@user.name)) %>
+<%= t('emailer.teamboxdata.hey', :user_name => h(@user.name)) %>
 
 <% if @error %>
 <%= t('emailer.teamboxdata.data_import_failed') %>
@@ -9,6 +9,3 @@
 <%= t('emailer.teamboxdata.data_imported') %>
 <%= @data.processed_data.url %>
 <% end %>
-
-<%= t('emailer.reset_password.report_abuse', :email => @user.email) %>
-<%= t('emailer.reset_password.problems', :support => APP_CONFIG['support']) %>

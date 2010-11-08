@@ -23,10 +23,27 @@ class TeamboxData
   
   def metadata_basecamp(with_project_data=false)
     firm_members = []
-    user_list = data['account']['firm']['people'].map do |person|
+    
+    organization_list = ([data['account']['firm']] + data['account']['clients']).map do |firm|
+      firm_members += firm['people']
+      people = firm['people'].map do |person|
+        {'user_id' => person['id']}
+      end
+      
+      compat_name = firm['name'].first
+      compat_name = compat_name.length < 4 ? (compat_name + '____') : compat_name
+      
+      {'id' => firm['id'],
+       'name' => compat_name,
+       'permalink' => PermalinkFu.escape(compat_name, Organization),
+       'time_zone' => firm['time_zone_id'],
+       'members' => people}
+    end
+    
+    user_list = firm_members.map do |person|
       {'id' => person['id'],
        'first_name' => person['first_name'],
-       'last_name' => person['last_name'],
+       'last_name' => person['last_name'] || '.',
        'email' => person['email_address'],
        'username' => person['name'].scan(/[A-Za-z0-9]+/).join(''),
        'created_at' => person['created_at']}
@@ -35,9 +52,13 @@ class TeamboxData
     firm_user_ids = user_list.map{|u|u['id']}
     
     project_list = data['account']['projects'].map do |project|
+      compat_name = project['name'].first
+      compat_name = compat_name.length < 4 ? (compat_name + '____') : compat_name
+      
       base = {'id' => id,
        'organization_id' => data['account']['firm']['id'],
-       'name' => project['name'].first,
+       'name' => compat_name,
+       'permalink' => PermalinkFu.escape(compat_name, Organization),
        'archived' => project['status'] == 'active' ? false : true,
        'created_at' => project['created_on'],
        'owner_user_id' => user_list.first['id']}
@@ -56,7 +77,10 @@ class TeamboxData
               'created_at' => post['created_on'],
               'simple' => false
             })
-            conversation['comments'] = post['comments'].map do |comment|
+            first_post = {'body' => post['body'],
+                          'created_at' => post['created_on'],
+                          'user_id' => post['author_id']}
+            conversation['comments'] = [first_post] + post['comments'].map do |comment|
               {'body' => comment['body'],
                'created_at' => comment['created_on'],
                'user_id' => comment['author_id']}
@@ -128,21 +152,6 @@ class TeamboxData
       end
       
       base
-    end
-      
-    organization_list = ([data['account']['firm']] + data['account']['clients']).map do |firm|
-      people = firm['people'].each do |person|
-        {'user_id' => person['id']}
-      end
-      
-      compat_name = firm['name'].first
-      compat_name = compat_name.length < 4 ? (compat_name + '____') : compat_name
-      
-      {'id' => firm['id'],
-       'name' => compat_name,
-       'permalink' => compat_name.downcase,
-       'time_zone' => firm['time_zone_id'],
-       'members' => people}
     end
     
     {'users' => user_list,
