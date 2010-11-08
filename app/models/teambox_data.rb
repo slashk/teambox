@@ -6,6 +6,7 @@ class TeamboxData < ActiveRecord::Base
   
   before_validation_on_create :set_service
   before_create :check_state
+  after_create  :post_check_state
   before_update :check_state
   before_destroy :clear_import_data
   
@@ -112,6 +113,12 @@ class TeamboxData < ActiveRecord::Base
     end
   end
   
+  def post_check_state
+    if type_name == :export
+      Emailer.send_with_language(:notify_export, user.locale, self) if @dispatch_notification
+    end
+  end
+  
   def do_import
     self.processed_at = Time.now
     do_deliver = ActionMailer::Base.perform_deliveries
@@ -133,18 +140,17 @@ class TeamboxData < ActiveRecord::Base
       end
     rescue Exception => e
       # Something went wrong?!
+      Rails.logger.warn "#{user} imported an invalid dump (#{self.id})"
       self.processed_at = nil
-      next_status = :processing
-      unless new_record? or @check_state
-        destroy
-        return
-      end
+      next_status = :uploading
     end
     
     self.status_name = next_status
     ActionMailer::Base.perform_deliveries = do_deliver
     clear_import_data
     save unless new_record? or @check_state
+    
+    Emailer.send_with_language(:notify_import, user.locale, self)
   end
   
   def do_export
@@ -156,11 +162,13 @@ class TeamboxData < ActiveRecord::Base
     upload.original_path = "#{user.login}-export.json"
     self.processed_data = upload
     self.status_name = :exported
+    @dispatch_notification = true
+    
     save unless new_record? or @check_state
   end
   
   def exported?
-    type_name == :import && status > EXPORT_STATUSES[:processing]
+    type_name == :export && status > EXPORT_STATUSES[:processing]
   end
   
   def imported?

@@ -2,10 +2,13 @@
 
 <%= t('emailer.teamboxdata.hey', :user_name => h(@user.name)) %>
 
-
+<% if @error %>
+<%= t('emailer.teamboxdata.data_export_failed') %>
+<%= teambox_data_path(@data) %>
+<% else %>
 <%= t('emailer.teamboxdata.data_exported') %>
-
-<%= data.processed_data.url %>
+<%= @data.processed_data.url %>
+<% end %>
 
 <%= t('emailer.reset_password.report_abuse', :email => @user.email) %>
 <%= t('emailer.reset_password.problems', :support => APP_CONFIG['support']) %>

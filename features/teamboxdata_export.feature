@@ -15,3 +15,4 @@ Feature: Exporting data
     Then I should see "Projects exported:"
       And I should see "Ruby Rockstars"
       And I should see "Download export"
+	  And @mislav should receive an email with subject "Your data is ready for download"

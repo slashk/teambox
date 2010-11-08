@@ -1292,10 +1292,14 @@ en:
       subject_without_project: "%{name} invited you to Teambox"
     teamboxdata:
         hey: "Hey, %{user_name}!"
-        data_imported: "Your data has been imported into teambox. To view details, please visit the following link."
-        data_exported: "Your data has been exported from teambox, and is available as a download from the following link."
+        data_imported: "Your data has been successfully imported into Teambox. To view details, please visit the following link:"
+        data_import_failed: "Your data could not be imported into Teambox. Please check that the data you uploaded is valid. To try again, visit the following link:"
+        data_exported: "Your data has been exported from Teambox, and is available as a download from the following link:"
+        data_export_failed: "Your data could not be exported from Teambox. To try again, please visit the following link:"
         exported: "Your data is ready for download"
+        export_failed: "Your data could not be exported"
         imported: "Your data has been imported"
+        import_failed: "Your data could not be imported"
     confirm:
       subject: "Get started with Teambox"
       hey: "Hey, %{user_name}!"

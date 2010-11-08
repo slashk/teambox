@@ -48,16 +48,20 @@ class Emailer < ActionMailer::Base
   
   def notify_export(data)
     defaults
+    
+    error = !data.exported?
     recipients    data.user.email
-    subject       I18n.t('emailer.teamboxdata.exported')
-    body          :data => data, :user => data.user
+    subject       error ? I18n.t('emailer.teamboxdata.export_failed') : I18n.t('emailer.teamboxdata.exported')
+    body          :data => data, :user => data.user, :error => error
   end
   
   def notify_import(data)
     defaults
+    
+    error = !data.imported?
     recipients    data.user.email
-    subject       I18n.t('emailer.teamboxdata.imported')
-    body          :data => data, :user => data.user
+    subject       error ? I18n.t('emailer.teamboxdata.import_failed') : I18n.t('emailer.teamboxdata.imported')
+    body          :data => data, :user => data.user, :error => error
   end
 
   def notify_conversation(user, project, conversation)

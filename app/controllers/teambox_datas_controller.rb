@@ -16,7 +16,7 @@ class TeamboxDatasController < ApplicationController
     respond_to do |f|
       if @data.type_name == :import and @data.need_data? and @data.data == nil
         @data.status_name = :uploading
-        flash[:error] = t('teambox_datas.show_import.import_error')
+        flash.now[:error] = t('teambox_datas.show_import.import_error')
         f.html { render view_for_data(:show) }
       else
         f.html { render view_for_data(:show) }
@@ -49,6 +49,9 @@ class TeamboxDatasController < ApplicationController
   def update
     respond_to do |f|
       if !@data.processing? and @data.update_attributes(params[:teambox_data])
+        if @data.status_name == :uploading
+          flash.now[:error] = t('teambox_datas.show_import.import_error')
+        end
         f.html { render view_for_data(:show) }
       else
         if @data.processing?
