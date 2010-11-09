@@ -1019,15 +1019,16 @@ en:
       title: "Export data"
       submit: Export data
     export_fields:
-      description: "Please select which projects you wish to export"
+      description: "Please select which projects you wish to export."
     index:
-      title: "Your data"
-      imports: "Imports"
-      exports: "Exports"
+      title: "Import or export your data"
+      imports: "Import data from a file"
+      imports_explain: "You may import Teambox backup files, or Basecamp projects."
+      exports: "Export your projects"
       no_imports: "There are no recent imports."
       no_exports: "There are no recent exports."
     show_export:
-      title: "Your data"
+      title: "Import / Export"
       projects: "Projects exported:"
       download: "Download export"
     data:
@@ -1179,7 +1180,7 @@ en:
       notifications: Notifications
       plans_and_billing: Plans and Billing
       delete_account: Delete Account...
-      your_data: Your data
+      your_data: Import / Export
     task_navigation:
       all_tasks: "All Tasks"
       unarchived_tasks: "Unarchived Tasks"

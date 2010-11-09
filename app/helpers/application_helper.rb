@@ -78,7 +78,7 @@ module ApplicationHelper
   end
 
   def location_name
-    "#{action_name}_#{controller.controller_name}"
+    "#{action_name}_#{controller.controller_name} controller_#{controller.controller_name}"
   end
 
   def loading_image(id)

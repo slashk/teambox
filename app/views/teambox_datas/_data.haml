@@ -1,6 +1,6 @@
 .teambox_data
   .info
-    = link_to "#{data.created_at.to_s}", teambox_data_path(data)
+    %p= link_to "#{data.created_at.to_s}", teambox_data_path(data)
     %p.desc
       - if data.processing?
         = t('.processing')

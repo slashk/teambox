@@ -1,11 +1,11 @@
 - if @data.status_name == :uploading
   %h3= t('.service')
-  %div{:style => 'float:left'}
-    = f.label :service_teambox, 'Teambox'
+  .service
     = f.radio_button :service, 'teambox'
-  %div{:style => 'float:left'}
-    = f.label :service_basecamp, 'Basecamp'
+    = f.label :service_teambox, 'Teambox'
+  .service
     = f.radio_button :service, 'basecamp'
+    = f.label :service_basecamp, 'Basecamp'
   
   .many_fields
     = f.label :asset, t('.select_file')
