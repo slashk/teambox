@@ -55,7 +55,7 @@ class TeamboxData
       compat_name = project['name'].first
       compat_name = compat_name.length < 4 ? (compat_name + '____') : compat_name
       
-      base = {'id' => id,
+      base = {'id' => project['id'],
        'organization_id' => data['account']['firm']['id'],
        'name' => compat_name,
        'permalink' => PermalinkFu.escape(compat_name, Organization),
@@ -74,15 +74,15 @@ class TeamboxData
             conversation.merge!({
               'name' => post['title'],
               'user_id' => post['author_id'],
-              'created_at' => post['created_on'],
+              'created_at' => post['posted_on'],
               'simple' => false
             })
             first_post = {'body' => post['body'],
-                          'created_at' => post['created_on'],
+                          'created_at' => post['posted_on'],
                           'user_id' => post['author_id']}
             conversation['comments'] = [first_post] + post['comments'].map do |comment|
               {'body' => comment['body'],
-               'created_at' => comment['created_on'],
+               'created_at' => comment['created_at'],
                'user_id' => comment['author_id']}
             end
           end
@@ -92,7 +92,8 @@ class TeamboxData
           {}.tap do |task_list|
             task_list.merge!({
               'name' => list['name'].first,
-              'user_id' => user_list.first['id']
+              'user_id' => user_list.first['id'],
+              'created_at' => project['created_on']
             })
             task_list['tasks'] = list['todo_items'].map do |list_item|
               task_status = if list_item['completed']
@@ -113,7 +114,7 @@ class TeamboxData
                 task['completed_at'] = (list_item['completed_at']||Time.now) if list_item['completed']
                 task['comments'] = list_item['comments'].map do |comment|
                   {'body' => comment['body'],
-                   'created_at' => comment['created_on'],
+                   'created_at' => comment['created_at'],
                    'user_id' => comment['author_id']}
                 end
               end
@@ -124,7 +125,8 @@ class TeamboxData
         base['task_lists'] << {}.tap do |task_list|
           task_list.merge!({
             'name' => 'Milestones',
-            'user_id' => user_list.first['id']
+            'user_id' => user_list.first['id'],
+            'created_at' => project['created_on']
           })
           task_list['tasks'] = project['milestones'].map do |milestone|
             {}.tap do |task|
@@ -143,7 +145,7 @@ class TeamboxData
               task['completed_at'] = (milestone['completed_at']||Time.now) if milestone['completed']
               task['comments'] = milestone['comments'].map do |comment|
                 {'body' => comment['body'],
-                 'created_at' => comment['created_on'],
+                 'created_at' => comment['created_at'],
                  'user_id' => comment['author_id']}
               end
             end

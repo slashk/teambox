@@ -115,7 +115,7 @@ describe TeamboxData do
       Conversation.count.should == 1
       TaskList.count.should == 2
       Task.count.should == 4
-      Comment.count.should == 4
+      Comment.count.should == 8
       
       org = Organization.last
       org.memberships.count.should == 1
