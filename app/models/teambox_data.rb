@@ -93,7 +93,7 @@ class TeamboxData < ActiveRecord::Base
         self.status_name = :processing
         if Teambox.config.delay_data_processing
           self.status_name = :pre_processing
-          send_later(:do_import)
+          TeamboxData.send_later(:delayed_import, self.id)
         else
           self.status_name = :processing
           do_import
@@ -104,7 +104,7 @@ class TeamboxData < ActiveRecord::Base
       when :selecting
         if Teambox.config.delay_data_processing
           self.status_name = :pre_processing
-          send_later(:do_export)
+          @dispatch_export = true
         else
           self.status_name = :processing
           do_export
@@ -116,6 +116,7 @@ class TeamboxData < ActiveRecord::Base
   def post_check_state
     if type_name == :export
       Emailer.send_with_language(:notify_export, user.locale, self) if @dispatch_notification
+      TeamboxData.send_later(:delayed_export, self.id) if @dispatch_export
     end
   end
   
@@ -165,6 +166,14 @@ class TeamboxData < ActiveRecord::Base
     @dispatch_notification = true
     
     save unless new_record? or @check_state
+  end
+  
+  def self.delayed_export(data_id)
+    TeamboxData.find_by_id(data_id).try(:do_export)
+  end
+  
+  def self.delayed_import(data_id)
+    TeamboxData.find_by_id(data_id).try(:do_import)
   end
   
   def exported?
