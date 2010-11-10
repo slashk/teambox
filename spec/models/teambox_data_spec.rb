@@ -73,6 +73,30 @@ describe TeamboxData do
       Project.count.should == old_project_count
     end
     
+    it "should rollback changes if an error occurs" do
+      data = File.open("#{RAILS_ROOT}/spec/fixtures/teamboxdump_invalid.json", 'r') do |file|
+        ActiveSupport::JSON.decode(file.read)
+      end
+      
+      User.destroy_all
+      Project.destroy_all
+      Organization.destroy_all
+      
+      User.count.should == 0
+      Project.count.should == 0
+      Organization.count.should == 0
+      
+      begin
+        TeamboxData.new.tap{|d| d.data = data }.unserialize({}, {:create_users => true, :create_organizations => true})
+      rescue => e
+        e.to_s.should == "Validation failed: Name must not be blank, Name must be shorter than 255 characters"
+      end
+      
+      User.count.should == 0
+      Project.count.should == 0
+      Organization.count.should == 0
+    end
+    
     it "should unserialize a basecamp dump" do
       User.count.should == 0
       Project.count.should == 0

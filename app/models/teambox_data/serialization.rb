@@ -101,6 +101,7 @@ class TeamboxData
   end
   
   def self.export_to_file(projects, users, organizations, name)
+    ActionMailer::Base.perform_deliveries = false
     data = TeamboxData.new.serialize(organizations, projects, users)
     File.open(name, 'w') { |file| file.write data.to_json }
   end
