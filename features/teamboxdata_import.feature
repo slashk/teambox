@@ -64,7 +64,8 @@ Scenario: Mislav forgets to map the data
   And I should see "Andrew Wiggin (@gandhi_3)"
   And I should see "Andrew Wiggin (@gandhi_4)"
   And I press "Import"
-  Then I should see "There were errors with the information you supplied!"
+  Then show me the page
+  Then I should see "Should be an admin"
   And @mislav should receive no emails
 
 Scenario: Mislav imports data with invalid records
@@ -84,6 +85,7 @@ Scenario: Mislav imports data with invalid records
     | Andrew Wiggin (@gandhi_4)             |  Mislav Marohnić (@mislav) |
     | Put all projects in this organization | Teambox Data               |
   And I press "Import"
-  Then I should see "There was an error loading your import. Please try again."
+  Then show me the page
+  Then I should see "There were errors with the information you supplied!"
   And @mislav should receive 1 email with subject "Your data could not be imported"
  
