@@ -7,6 +7,7 @@ class TeamboxData < ActiveRecord::Base
   before_validation_on_create :set_service
   before_create :check_state
   after_create  :post_check_state
+  after_update  :post_check_state
   before_update :check_state
   before_destroy :clear_import_data
   
@@ -39,7 +40,7 @@ class TeamboxData < ActiveRecord::Base
   
   def clear_import_data
     if type_name == :import
-      fname = "#{temp_upload_path}/#{processed_data_file_name}"
+      fname = import_data_file_name
       FileUtils.rm(fname) if processed_data_file_name and File.exists?(fname)
       self.processed_data_file_name = nil
     end
@@ -57,14 +58,12 @@ class TeamboxData < ActiveRecord::Base
     begin
       # store the import in a temporary file, since we don't need it for long
       bytes = @import_data.read
-      self.processed_data_file_name = "#{user.name}-import.json"
-      File.open("#{temp_upload_path}/#{processed_data_file_name}", 'w') do |f|
+      File.open(import_data_file_name, 'w') do |f|
         f.write bytes
       end
-      self.status_name = :mapping
+      @import_data = nil
     rescue Exception => e
       @process_error = e.to_s
-      self.processed_data_file_name = nil
       self.status_name = :uploading
     end
   end
@@ -85,7 +84,9 @@ class TeamboxData < ActiveRecord::Base
         if self.processed_data_file_name and File.exists?("#{temp_upload_path}/#{processed_data_file_name}")
           self.status_name = :mapping
         elsif @import_data
-          store_import_data
+          self.processed_data_file_name = "#{user.login}.json"
+          @do_store_import_data = true
+          self.status_name = :mapping
         else
           self.processed_data_file_name = nil
         end
@@ -117,6 +118,8 @@ class TeamboxData < ActiveRecord::Base
     if type_name == :export
       Emailer.send_with_language(:notify_export, user.locale, self) if @dispatch_notification
       TeamboxData.send_later(:delayed_export, self.id) if @dispatch_export
+    elsif type_name == :import
+      store_import_data if @do_store_import_data
     end
   end
   
