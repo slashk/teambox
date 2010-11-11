@@ -4,8 +4,8 @@
 
 <% if @error %>
 <%= t('emailer.teamboxdata.data_export_failed') %>
-<%= teambox_data_path(@data) %>
+<%= teambox_data_url(@data) %>
 <% else %>
 <%= t('emailer.teamboxdata.data_exported') %>
-<%= @data.processed_data.url %>
+<%= "http://#{Teambox.config.app_domain}#{@data.processed_data.url}" %>
 <% end %>

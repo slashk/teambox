@@ -4,8 +4,8 @@
 
 <% if @error %>
 <%= t('emailer.teamboxdata.data_import_failed') %>
-<%= teambox_data_path(@data) %>
+<%= teambox_data_url(@data) %>
 <% else %>
 <%= t('emailer.teamboxdata.data_imported') %>
-<%= @data.processed_data.url %>
+<%= teambox_data_url(@data) %>
 <% end %>
