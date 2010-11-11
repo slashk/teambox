@@ -97,6 +97,28 @@ describe TeamboxData do
       Organization.count.should == 0
     end
     
+    it "should preserve created_at dates" do
+      data = File.open("#{RAILS_ROOT}/spec/fixtures/teamboxdump.json", 'r') do |file|
+        ActiveSupport::JSON.decode(file.read)
+      end
+      
+      User.destroy_all
+      Project.destroy_all
+      Organization.destroy_all
+      
+      User.count.should == 0
+      Project.count.should == 0
+      Organization.count.should == 0
+      
+      TeamboxData.new.tap{|d| d.data = data }.unserialize({}, {:create_users => true, :create_organizations => true})
+      
+      Comment.all.each {|o| o.created_at.year.should == 2009}
+      Project.all.each {|o| o.created_at.year.should == 2009}
+      Task.all.each {|o| o.created_at.year.should == 2009}
+      TaskList.all.each {|o| o.created_at.year.should == 2009}
+      Conversation.all.each {|o| o.created_at.year.should == 2009}
+    end
+    
     it "should unserialize a basecamp dump" do
       User.count.should == 0
       Project.count.should == 0
@@ -123,6 +145,17 @@ describe TeamboxData do
       org.projects.first.people.count.should == 1
       
       Task.all.map(&:assigned).should == [Person.first] * Task.count
+    end
+    
+    it "should preserve created_at dates when loading a basecamp dump" do
+      data = File.open("#{RAILS_ROOT}/spec/fixtures/campdump.xml") { |f| Hash.from_xml f.read }
+      TeamboxData.new.tap{|d| d.service = 'basecamp'; d.data = data }.unserialize({}, {:create_users => true, :create_organizations => true})
+      
+      Comment.all.each {|o| o.created_at.year.should == 2009}
+      Project.all.each {|o| o.created_at.year.should == 2009}
+      Task.all.each {|o| o.created_at.year.should == 2009}
+      TaskList.all.each {|o| o.created_at.year.should == 2009}
+      Conversation.all.each {|o| o.created_at.year.should == 2009}
     end
   end
   

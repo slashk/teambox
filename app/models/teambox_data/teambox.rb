@@ -97,17 +97,26 @@ class TeamboxData
           unpack_comments(task_list, task_list_data['comments'])
         
           Array(task_list_data['tasks']).each do |task_data|
+            # Tasks automatically create comments, so we need to be careful!
             task = unpack_object(task_list.tasks.build, task_data)
+            
             # To determine the initial state of the task, we need to look at the first comment
             if task_data['comments'] && task_data['comments'].length > 0
               first_comment = task_data['comments'][0]
               task.status = first_comment['previous_status'] if first_comment['previous_status']
               task.assigned_id = resolve_person(first_comment['previous_assigned_id']).id if first_comment['previous_assigned_id']
+              task.due_on = first_comment['previous_due_on'] if first_comment['previous_due_on']
             end
             
+            task.updating_date = task.created_at
+            task.updating_user = task.user
             task.save!
+            
             import_log(task)
             unpack_task_comments(task, task_data['comments'])
+            
+            task.updating_date = task.created_at
+            task.updating_user = task.user
             unpack_object(task, task_data).save!
           end
           
@@ -178,6 +187,8 @@ class TeamboxData
     comments.each do |comment_data|
       comment = unpack_object(task.comments.build, comment_data)
       comment.assigned_id = resolve_person(comment_data['assigned_id']).id if data['assigned_id']
+      task.updating_user = comment.user
+      task.updating_date = comment.created_at
       task.save!
       import_log(comment)
     end
