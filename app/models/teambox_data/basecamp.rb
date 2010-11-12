@@ -80,7 +80,8 @@ class TeamboxData
             first_post = {'body' => post['body'],
                           'created_at' => post['posted_on'],
                           'user_id' => post['author_id']}
-            conversation['comments'] = [first_post] + post['comments'].map do |comment|
+            first_posts = first_post['body'].blank? ? [] : [first_post]
+            conversation['comments'] = first_posts + post['comments'].map do |comment|
               {'body' => comment['body'],
                'created_at' => comment['created_at'],
                'user_id' => comment['author_id']}
