@@ -7,31 +7,55 @@
 //= require <dragdrop>
 //= require <sound>
 
-// Call this on any function to transform it into a function that will only be called
-// once in the given interval. Example: function().throttle(200) for 200ms.
+// Run the function as soon as it's called, but prevent further calls during `delay` ms
+// Example: function.throttle(200) will only run function() once every 200 ms.
 // Useful, for example, to avoid constant processing while typing in a live search box.
-Function.prototype.throttle = function(t) {
-  var timeout, scope, args, fn = this, tick = function() {
-    fn.apply(scope, args)
-    timeout = null
-  }
+Function.prototype.throttle = function(delay) {
+  var fn = this
   return function() {
-    var timeout, fn = this
-    if (!timeout) timeout = setTimeout(tick, t)
+    var now = (new Date).getTime()
+    if (!fn.lastExecuted || fn.lastExecuted + delay < now) {
+      fn.lastExecuted = now
+      fn.apply(fn)
+    }
   }
 }
 
-// Call this on any function to transform it into a function that will only be called
-// after the first pause lasting at least the given interval.
-// Call function().debounce(200) for 200ms. Useful, for example, to check an available username.
-Function.prototype.debounce = function(t) {
-  var timeout, fn = this
+// Instead of calling the function immediately, wait at least `delay` ms before calling it.
+// Example: function.debounce(200) will only call the function after a 200ms pause.
+// Useful, for example, to check an available username (wait to pause typing and check).
+Function.prototype.debounce = function(delay) {
+  var fn = this
   return function() {
-    var scope = this, args = arguments
-    timeout && clearTimeout(timeout)
-    timeout = setTimeout(function() { fn.apply(scope, args) }, t)
+    var now = (new Date).getTime()
+    fn.timeout_id && clearTimeout(fn.timeout_id)
+    fn.timeout_id = setTimeout(fn.bind(fn), delay)
   }
 }
+
+setTimeout( function() {
+  
+  times_called_yell = 0
+  yell = function() { times_called_yell++ }.throttle(200)
+  setTimeout(yell, 0)   // will fire
+  setTimeout(yell, 100)
+  setTimeout(yell, 250) // will fire
+  setTimeout(yell, 300)
+  setTimeout(yell, 350)
+  setTimeout(yell, 500) // will fire
+  setTimeout(function() { console.log(times_called_yell) }, 1000)
+
+
+  times_called_sing = 0
+  sing = function() { times_called_sing++ }.debounce(100)
+  setTimeout(sing, 50)
+  setTimeout(sing, 120) 
+  setTimeout(sing, 200) // will fire
+  setTimeout(sing, 400)
+  setTimeout(sing, 450) // will fire
+  setTimeout(function() { console.log(times_called_sing) }, 1000)
+  
+}, 1000)
 
 Event.onReady = function(fn) {
   if (document.body) fn()
